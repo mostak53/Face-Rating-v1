@@ -1,0 +1,5 @@
+{
+  "name": "Face Rating",
+  "description": "A professional face rating system where users can rate celebrity photos from different angles and admins can manage the data.",
+  "requestFramePermissions": []
+}

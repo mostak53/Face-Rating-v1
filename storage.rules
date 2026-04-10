@@ -1,0 +1,14 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      // Allow public read access to all photos
+      allow read: if true;
+      
+      // Allow write access only to the admin
+      allow write: if request.auth != null && 
+                   (request.auth.token.email == "252-15-974@diu.edu.bd" ||
+                    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System users including admins and regular raters",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string", "description": "Unique username" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["username", "email", "role"]
+    },
+    "Photo": {
+      "title": "Photo",
+      "description": "Celebrity photos uploaded by admins",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Celebrity name" },
+        "angle": { "type": "string", "enum": ["Front", "Left", "Right", "Top", "45 degree"] },
+        "url": { "type": "string", "description": "URL of the stored image" },
+        "uploadedBy": { "type": "string", "description": "Admin UID" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "angle", "url", "uploadedBy"]
+    },
+    "Rating": {
+      "title": "Rating",
+      "description": "User ratings for specific photos",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "photoId": { "type": "string" },
+        "photoName": { "type": "string" },
+        "angle": { "type": "string" },
+        "rating": { "type": "number", "description": "1-5 stars" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "photoId", "rating"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/photos/{photoId}": {
+      "schema": "Photo",
+      "description": "Celebrity photos"
+    },
+    "/ratings/{ratingId}": {
+      "schema": "Rating",
+      "description": "Individual ratings"
+    }
+  }
+}

@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (UID)
+    // Fields:
+    //   - username: string (required, unique-ish)
+    //   - email: string (required)
+    //   - role: string (required, 'user' | 'admin')
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: photos
+    // Document ID: photoId
+    // Fields:
+    //   - name: string (required)
+    //   - angle: string (required, ['Front', 'Left', 'Right', 'Top', '45 degree'])
+    //   - url: string (required)
+    //   - uploadedBy: string (required, admin UID)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: ratings
+    // Document ID: ratingId (often userId_photoId)
+    // Fields:
+    //   - userId: string (required)
+    //   - username: string (required)
+    //   - photoId: string (required)
+    //   - photoName: string (required)
+    //   - angle: string (required)
+    //   - rating: number (required, 1-5)
+    //   - timestamp: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        ((exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+         request.auth.token.email == "252-15-974@diu.edu.bd");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidUser(data) {
+      return data.username is string && data.username.size() >= 3 && data.username.size() <= 30 &&
+             data.email is string && data.role in ['user', 'admin'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPhoto(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.angle in ['Front', 'Left', 'Right', 'Top', '45 degree'] &&
+             data.url is string && data.url.size() > 0 &&
+             data.uploadedBy is string &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidRating(data) {
+      return data.userId == request.auth.uid &&
+             data.username is string &&
+             data.photoId is string &&
+             data.photoName is string &&
+             data.angle is string &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.timestamp is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isAdmin() || (isOwner(userId) && isValidUser(request.resource.data));
+      allow delete: if isAdmin();
+    }
+
+    match /usernames/{username} {
+      // Allow public lookup for login and registration checks
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /photos/{photoId} {
+      allow read: if isAuthenticated();
+      allow create: if isAdmin() && isValidPhoto(request.resource.data);
+      allow update: if isAdmin() && isValidPhoto(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /ratings/{ratingId} {
+      allow read: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && isValidRating(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && isValidRating(request.resource.data);
+      allow delete: if isAdmin();
+    }
+    
+    // Public stats
+    match /stats/summary {
+      allow read: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userCount']) &&
+        request.resource.data.userCount == resource.data.userCount + 1;
+    }
+  }
+}

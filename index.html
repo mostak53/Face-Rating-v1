@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Face Rating | Professional Facial Aesthetic Analysis</title>
+    <meta name="description" content="The ultimate platform for analyzing facial aesthetics. Rate celebrities across 5 different angles and help build the most comprehensive face database." />
+    <meta name="keywords" content="face rating, facial aesthetics, celebrity rating, beauty analysis" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Face Rating | Professional Facial Aesthetic Analysis" />
+    <meta property="og:description" content="The ultimate platform for analyzing facial aesthetics. Rate celebrities across 5 different angles." />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Face Rating | Professional Facial Aesthetic Analysis" />
+    <meta property="twitter:description" content="The ultimate platform for analyzing facial aesthetics. Rate celebrities across 5 different angles." />
+
+    <style>
+      #initial-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fafafa;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #18181b;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="initial-loader">
+      <div class="spinner"></div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      window.addEventListener('load', () => {
+        const loader = document.getElementById('initial-loader');
+        if (loader) {
+          loader.style.opacity = '0';
+          setTimeout(() => loader.remove(), 500);
+        }
+      });
+    </script>
+  </body>
+</html>
+
